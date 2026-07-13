@@ -47,7 +47,7 @@ export const getEnvios = async (req: Request, res: Response) => {
 
 export const getEnvioById = async (req: Request, res: Response) => {
   try {
-    const result = await EnviosService.obtenerDetalleEnvio(req.params.id);
+    const result = await EnviosService.obtenerDetalleEnvio(req.params.id as string);
     res.json(result);
   } catch (error: any) {
     res.status(404).json({ message: error.message });
