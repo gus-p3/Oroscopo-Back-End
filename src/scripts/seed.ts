@@ -261,12 +261,45 @@ const runSeed = async () => {
         aspectoId: aspecto._id
       });
 
-      const opcionesToInsert = data.pregunta.opciones.map(opt => ({
-        preguntaId: pregunta._id,
-        numero: opt.numero,
-        texto: opt.texto,
-        valor: opt.valor
-      }));
+      const getElementosPrincipalYSecundario = (preguntaNum: number, opcionNum: number) => {
+        if (preguntaNum >= 1 && preguntaNum <= 3) {
+          if (opcionNum === 1) return [elTierra._id, elAgua._id];
+          if (opcionNum === 2) return [elAgua._id, elTierra._id];
+          if (opcionNum === 3) return [elAire._id, elFuego._id];
+          if (opcionNum === 4) return [elFuego._id, elAire._id];
+        }
+        if (preguntaNum >= 4 && preguntaNum <= 6) {
+          if (opcionNum === 1) return [elFuego._id, elAire._id];
+          if (opcionNum === 2) return [elAire._id, elFuego._id];
+          if (opcionNum === 3) return [elAgua._id, elTierra._id];
+          if (opcionNum === 4) return [elTierra._id, elAgua._id];
+        }
+        if (preguntaNum >= 7 && preguntaNum <= 9) {
+          if (opcionNum === 1) return [elAgua._id, elTierra._id];
+          if (opcionNum === 2) return [elTierra._id, elAgua._id];
+          if (opcionNum === 3) return [elFuego._id, elAire._id];
+          if (opcionNum === 4) return [elAire._id, elFuego._id];
+        }
+        if (preguntaNum >= 10 && preguntaNum <= 12) {
+          if (opcionNum === 1) return [elAire._id, elFuego._id];
+          if (opcionNum === 2) return [elFuego._id, elAire._id];
+          if (opcionNum === 3) return [elTierra._id, elAgua._id];
+          if (opcionNum === 4) return [elAgua._id, elTierra._id];
+        }
+        return [null, null];
+      };
+
+      const opcionesToInsert = data.pregunta.opciones.map(opt => {
+        const [principalId, secundarioId] = getElementosPrincipalYSecundario(data.pregunta.numero, opt.numero);
+        return {
+          preguntaId: pregunta._id,
+          numero: opt.numero,
+          texto: opt.texto,
+          valor: opt.valor,
+          elementoPrincipalId: principalId,
+          elementoSecundarioId: secundarioId
+        };
+      });
 
       await OpcionRespuesta.insertMany(opcionesToInsert);
     }

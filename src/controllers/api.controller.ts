@@ -26,6 +26,7 @@ export const getCatalogos = async (req: Request, res: Response) => {
 
 export const createEnvio = async (req: Request, res: Response) => {
   try {
+    console.log("Entre")
     const result = await EnviosService.crearEnvio(req.body);
     res.status(201).json(result);
   } catch (error: any) {

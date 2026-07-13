@@ -22,9 +22,6 @@ export interface IEnvioInput {
 
 export class EnviosService {
   static async crearEnvio(data: IEnvioInput) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    
     try {
       // 1. Crear Persona
       const persona = new Persona({
@@ -32,18 +29,18 @@ export class EnviosService {
         genero: data.genero,
         signoZodiacalId: data.signoZodiacalId
       });
-      await persona.save({ session });
+      await persona.save();
 
       // 2. Crear Envio
       const envio = new Envio({
         personaId: persona._id,
         estado: data.respuestas.length === 12 ? 'completo' : 'incompleto'
       });
-      await envio.save({ session });
+      await envio.save();
 
       // Puntos acumulados por elemento
       // Inicializar en 0
-      const elementos = await Elemento.find().session(session);
+      const elementos = await Elemento.find();
       const puntajesMap: Record<string, number> = {};
       elementos.forEach(el => {
         puntajesMap[el._id.toString()] = 0;
@@ -54,14 +51,14 @@ export class EnviosService {
 
       // 3. Procesar las 12 respuestas
       for (const resp of data.respuestas) {
-        const opcion = await OpcionRespuesta.findById(resp.opcionId).session(session);
-        const pregunta = await Pregunta.findById(resp.preguntaId).session(session);
+        const opcion = await OpcionRespuesta.findById(resp.opcionId);
+        const pregunta = await Pregunta.findById(resp.preguntaId);
         
         if (!opcion || !pregunta) {
           throw new Error(`Datos inválidos para preguntaId: ${resp.preguntaId}`);
         }
 
-        const aspecto = await AspectoPersonalidad.findById(pregunta.aspectoId).session(session);
+        const aspecto = await AspectoPersonalidad.findById(pregunta.aspectoId);
         if (!aspecto) {
           throw new Error(`Aspecto no encontrado para preguntaId: ${resp.preguntaId}`);
         }
@@ -72,7 +69,11 @@ export class EnviosService {
           aspectoId: aspecto._id,
           opcionSeleccionadaId: opcion._id,
           valorAspecto: opcion.valor,
-          textoRespuestaCualitativa: opcion.texto
+          textoRespuestaCualitativa: opcion.texto,
+          elementoPrincipalId: opcion.elementoPrincipalId,
+          puntajePrincipal: 3,
+          elementoSecundarioId: opcion.elementoSecundarioId,
+          puntajeSecundario: 1
         });
 
         vectorAspectos.push({
@@ -81,13 +82,13 @@ export class EnviosService {
           valor: opcion.valor
         });
 
-        // Sumar al dueño (+valor)
-        puntajesMap[aspecto.elementoDuenioId.toString()] += opcion.valor;
-        // Sumar al par (+1)
-        puntajesMap[aspecto.elementoParId.toString()] += 1;
+        // Sumar al principal (+3)
+        puntajesMap[opcion.elementoPrincipalId.toString()] += 3;
+        // Sumar al secundario (+1)
+        puntajesMap[opcion.elementoSecundarioId.toString()] += 1;
       }
 
-      await Respuesta.insertMany(respuestasParaInsertar, { session });
+      await Respuesta.insertMany(respuestasParaInsertar);
 
       // 4. Calcular puntajes por elemento y predominante
       let maxPuntaje = -1;
@@ -108,10 +109,7 @@ export class EnviosService {
         esPredominante: elId === predominanteId
       }));
 
-      await PuntajeElemento.insertMany(puntajesParaInsertar, { session });
-
-      await session.commitTransaction();
-      session.endSession();
+      await PuntajeElemento.insertMany(puntajesParaInsertar);
 
       // Enriquecer con los nombres de los elementos para mostrarlo en el frontend
       const elementosMap: Record<string, string> = {};
@@ -131,8 +129,6 @@ export class EnviosService {
         elementoPredominanteNombre: elementosMap[predominanteId] ?? '?'
       };
     } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
       throw error;
     }
   }
