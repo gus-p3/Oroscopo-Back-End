@@ -1,44 +1,40 @@
-# Oroscopo-Back-End
+# Backend — API REST & Microservicio ML
 
-API REST del sistema de Cuestionario de Personalidad Zodiacal.
+Servidor backend principal en Node.js + Express + TypeScript e integración con el microservicio de Machine Learning en Python.
 
-## Stack
-- Node.js + Express + TypeScript
-- MongoDB + Mongoose (9 colecciones normalizadas)
-- Arquitectura en capas: routes / controllers / services / models
+## 📁 Estructura
+- **`src/`**: Servidor API REST Node.js
+  - `controllers/`: Controladores de endpoints (incluye `algoritmo.controller.ts`).
+  - `routes/`: Rutas Express (incluye `algoritmo.routes.ts`).
+  - `services/`: Lógica de negocio y consultas MongoDB optimizadas (`dataModel.service.ts`, `personaModel.service.ts`).
+  - `models/`: Esquemas de Mongoose y tipos TypeScript.
+- **`ml-service/`**: Microservicio en Python (FastAPI + Scikit-Learn + SciPy) para procesamiento de algoritmos K-Means y Jerárquico.
 
-## Instalación
+---
 
+## ⚡ Instalación y Ejecución
+
+### 1. Backend (Node.js)
 ```bash
 npm install
-```
-
-## Base de datos — Seed inicial
-
-```bash
-npx tsx src/scripts/seed.ts
-```
-
-## Desarrollo (recarga automática)
-
-```bash
 npm run dev
 ```
+Correrá en **`http://localhost:3000`**.
 
-## Producción
-
+### 2. Microservicio de ML (Python)
 ```bash
-npm run build
-npm start
+cd ml-service
+pip install -r requirements.txt
+py run.py
 ```
+Correrá en **`http://localhost:8000`**.
 
-El servidor corre en `http://localhost:3000`.
+---
 
-## Variables de entorno
-
-Crea un archivo `.env` en la raíz con:
-
-```
-MONGO_URI=mongodb://127.0.0.1:27017/zodiacal
+## 🔐 Variables de Entorno (.env)
+Crea un archivo `.env` en la raíz de `back-end/`:
+```env
 PORT=3000
+MONGO_URI=mongodb://127.0.0.1:27017/sodiacal_db
+PYTHON_ML_SERVICE_URL=http://localhost:8000
 ```

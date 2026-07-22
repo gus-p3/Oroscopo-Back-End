@@ -9,4 +9,6 @@ export class UserService {
     static async createUser(data: any) {
         return await UserModel.create(data);
     }
+
+
 }

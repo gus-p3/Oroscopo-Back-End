@@ -12,6 +12,24 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Middleware para ver todas las peticiones HTTP entrantes en la consola
+app.use((req, res, next) => {
+    const start = Date.now();
+    const { method, originalUrl } = req;
+
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        const status = res.statusCode;
+        const timestamp = new Date().toLocaleTimeString();
+        console.log(`[${timestamp}] 🚀 ${method} ${originalUrl} -> ${status} (${duration}ms)`);
+        if (req.body && Object.keys(req.body).length > 0) {
+            console.log(`   📦 Body:`, JSON.stringify(req.body));
+        }
+    });
+
+    next();
+});
+
 app.use('/api', apiRoutes);
 
 const startServer = async () => {

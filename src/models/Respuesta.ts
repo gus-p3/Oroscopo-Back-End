@@ -29,4 +29,6 @@ const RespuestaSchema: Schema = new Schema({
   collection: 'respuestas'
 });
 
+RespuestaSchema.index({ envioId: 1, preguntaId: 1 });
+
 export default mongoose.model<IRespuesta>('Respuesta', RespuestaSchema);
