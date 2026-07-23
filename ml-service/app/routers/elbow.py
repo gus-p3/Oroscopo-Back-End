@@ -24,12 +24,14 @@ def calcular_curva_codo(payload: ElbowRequest) -> ElbowResponse:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     n_muestras = matriz.shape[0]
-    k_maximo_real = min(payload.kMax, n_muestras - 1)
-    if k_maximo_real < 2:
+    if n_muestras < 2:
         raise HTTPException(
             status_code=400,
-            detail="No hay suficientes registros para calcular la curva del codo (se necesitan al menos 3).",
+            detail="Se requieren al menos 2 registros en el dataset para calcular la curva del codo.",
         )
+
+    # Permitir calcular para K desde 2 hasta min(kMax, n_muestras - 1)
+    k_maximo_real = max(2, min(payload.kMax, n_muestras - 1 if n_muestras > 2 else 2))
 
     inercias: list[ElbowPoint] = []
     try:

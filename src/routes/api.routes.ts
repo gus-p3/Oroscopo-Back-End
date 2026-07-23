@@ -9,6 +9,7 @@ import {
 } from '../controllers/api.controller';
 import { exportEnvios } from '../controllers/export.controller';
 import algoritmoRoutes from './algoritmo.routes';
+import personaRoutes from './persona.routes';
 import Joi from 'joi';
 
 const router = Router();
@@ -44,5 +45,6 @@ router.get('/estadisticas', getEstadisticas);
 
 // Rutas de los algoritmos de Machine Learning
 router.use('/algoritmo', algoritmoRoutes);
+router.use('/persona', personaRoutes)
 
 export default router;

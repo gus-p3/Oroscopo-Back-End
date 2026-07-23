@@ -45,6 +45,24 @@ export const trainHierarchical = async (data: HierarchicalRequest): Promise<Hier
     }
 };
 
+/**
+ * Llama al microservicio de Python para calcular la Curva del Codo (Elbow Method).
+ */
+export const trainElbow = async (dataset: any[], kMax: number = 10): Promise<any> => {
+    try {
+        const respuesta = await axios.post(`${PYTHON_ML_SERVICE_URL}/elbow`, { dataset, kMax });
+        return respuesta.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            if (error.response) {
+                throw new Error(`Error del servicio ML (${error.response.status}): ${error.response.data.detail || error.response.statusText}`);
+            }
+            throw new Error(`No se pudo conectar con el servicio de Machine Learning (${PYTHON_ML_SERVICE_URL})`);
+        }
+        throw error;
+    }
+};
+
 // ----------------------------- CONTROLLERS EXPRESS -----------------------------
 
 /**
@@ -181,5 +199,41 @@ export const getDataModelHierarchical = async (req: Request, res: Response) => {
         });
     } catch (error: any) {
         return res.status(400).json({ message: 'Error en Clusterización Jerárquica', error: error.message });
+    }
+};
+
+/**
+ * Controller para calcular el Método del Codo (Elbow Method).
+ */
+export const getDataModelElbow = async (req: Request, res: Response) => {
+    try {
+        let { ids, questions, kMax } = req.body;
+
+        if (!ids || ids.length === 0) {
+            const personas = await Persona.find({}, { _id: 1 });
+            ids = personas.map(p => p._id.toString());
+        }
+
+        if (!questions || questions.length === 0) {
+            const preguntas = await Pregunta.find({}, { _id: 1 });
+            questions = preguntas.map(p => p._id.toString());
+        }
+
+        const dataPersons = await DataModelService.setData({ ids, questions });
+        if (!dataPersons.dataset || dataPersons.dataset.length < 2) {
+            return res.status(400).json({
+                message: 'Error de validación',
+                error: 'Se requieren al menos 2 personas registradas con respuestas para calcular la curva del codo.'
+            });
+        }
+
+        const result = await trainElbow(dataPersons.dataset, Number(kMax) || 10);
+
+        return res.status(200).json({
+            message: 'Curva del Codo calculada con éxito',
+            result
+        });
+    } catch (error: any) {
+        return res.status(400).json({ message: 'Error al calcular la curva del codo', error: error.message });
     }
 };

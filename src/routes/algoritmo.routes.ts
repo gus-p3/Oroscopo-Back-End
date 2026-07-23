@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { 
   getDataModelKMeans, 
-  getDataModelHierarchical 
+  getDataModelHierarchical,
+  getDataModelElbow
 } from '../controllers/algoritmo.controller';
 
 const router = Router();
@@ -17,5 +18,11 @@ router.post('/kmeans', getDataModelKMeans);
  * @desc    Genera el dataset y ejecuta la Clusterización Jerárquica
  */
 router.post('/jerarquico', getDataModelHierarchical);
+
+/**
+ * @route   POST /api/algoritmo/elbow
+ * @desc    Calcula la curva del codo para determinar el K óptimo
+ */
+router.post('/elbow', getDataModelElbow);
 
 export default router;
